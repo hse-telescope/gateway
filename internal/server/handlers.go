@@ -35,7 +35,16 @@ func addContext(handler http.Handler) http.Handler {
 func addTracing(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			// TODO: add tracing
+			// TODO: Add tracing
+			handler.ServeHTTP(w, r)
+		},
+	)
+}
+
+func (s *Server) addAuthentification(handler http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			// TODO: Add authentification
 			handler.ServeHTTP(w, r)
 		},
 	)
@@ -47,8 +56,10 @@ func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("auth"))
+	// TODO: Proxy auth
 }
 
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("core"))
+	// TODO: Proxy core
 }

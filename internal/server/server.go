@@ -7,14 +7,17 @@ import (
 	"github.com/hse-telescope/gateway/internal/config"
 )
 
-type Provider interface{}
+type provider interface {
+	ProxyRequestAuth(req *http.Request) (*http.Response, error)
+	ProxyRequestCore(req *http.Request) (*http.Response, error)
+}
 
 type Server struct {
 	server   http.Server
-	provider Provider
+	provider provider
 }
 
-func New(conf config.Config, provider Provider) *Server {
+func New(conf config.Config, provider provider) *Server {
 	s := new(Server)
 	s.server.Addr = fmt.Sprintf(":%d", conf.Port)
 	s.server.Handler = s.setRouter()
@@ -25,8 +28,8 @@ func New(conf config.Config, provider Provider) *Server {
 func (s *Server) setRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("GET /ping", wrapHandlerFunc(s.pingHandler, addContext, addTracing))
-	mux.Handle("/auth", wrapHandlerFunc(s.authHandler, addContext, addTracing))
-	mux.Handle("/core", wrapHandlerFunc(s.coreHandler, addContext, addTracing))
+	mux.Handle("/auth", wrapHandlerFunc(s.authHandler, addContext, addTracing, s.addAuthentification))
+	mux.Handle("/core", wrapHandlerFunc(s.coreHandler, addContext, addTracing, s.addAuthentification))
 	return mux
 }
 

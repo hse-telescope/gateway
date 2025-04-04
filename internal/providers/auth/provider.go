@@ -17,5 +17,6 @@ func New(auth auth.Wrapper) Provider {
 }
 
 func (p Provider) CheckToken(ctx context.Context, token string) bool {
+	// TODO: Add token business logic
 	return false
 }
