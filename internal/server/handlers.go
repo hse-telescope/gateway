@@ -6,24 +6,26 @@ import (
 	"time"
 )
 
+type middleware = func(http.Handler) http.Handler
+
 const (
 	timeout = 1 * time.Second
 )
 
-func wrapHandlerFunc(handler http.HandlerFunc) http.Handler {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	return addTracing(
-		addContext(
-			ctx,
-			handler,
-		),
-	)
+func wrapHandlerFunc(handlerFunc http.HandlerFunc, middlewares ...middleware) http.Handler {
+	var handler http.Handler = handlerFunc
+	for _, middleware := range middlewares {
+		handler = middleware(handler)
+	}
+	return handler
 }
 
-func addContext(ctx context.Context, handler http.Handler) http.Handler {
+func addContext(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
+			ctx, cancel := context.WithTimeout(r.Context(), timeout)
+			defer cancel()
+
 			r = r.WithContext(ctx)
 			handler.ServeHTTP(w, r)
 		},
