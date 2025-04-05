@@ -63,13 +63,3 @@ func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("core"))
 	// TODO: Proxy core
 }
-
-// Core -> Auth: CheckPermissions(userID, projectID, action) -> status 200/403
-
-// action: read, write, delete
-
-// Admin: rwd
-
-// Writer: rw
-
-// Reader: r
