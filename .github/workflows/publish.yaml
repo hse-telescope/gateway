@@ -1,0 +1,65 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out
+        uses: actions/checkout@v4
+
+      - name: Log in Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Set up Docker BuildX
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Extract GateWay Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/gateway
+
+      - name: Build and Push GateWay
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/gateway:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  operations:
+    runs-on: ubuntu-latest
+    needs:
+      - gateway
+    steps:
+      - name: Check Out
+        uses: actions/checkout@v4
+        with:
+          repository: hse-telescope/operations
+          ref: master
+          token: ${{ secrets.OPERATIONS_REPO_UPDATE }}
+
+      - name: Setup Git Config
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Update Tag
+        run: |
+          sed -i 's/GATEWAY_TAG=.*/GATEWAY_TAG=${{ github.sha }}/g' .env
+
+          git add .env
+
+          # If script has been run twice on the same commit
+          git commit --allow-empty -m "Tag update: ${{ github.sha }}"
+          git push
