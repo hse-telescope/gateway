@@ -54,11 +54,23 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-      - name: Update Tag
+      - name: Update Staging Tag
+        if: ${{ github.ref != 'refs/heads/master' }}
         run: |
-          sed -i 's/GATEWAY_TAG=.*/GATEWAY_TAG=${{ github.sha }}/g' .env
+          sed -i 's/GATEWAY_TAG=.*/GATEWAY_TAG=${{ github.sha }}/g' ./compose/staging/.env
 
-          git add .env
+          git add ./compose/staging/.env
+
+          # If script has been run twice on the same commit
+          git commit --allow-empty -m "Tag update: ${{ github.sha }}"
+          git push
+
+      - name: Update Production Tag
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          sed -i 's/GATEWAY_TAG=.*/GATEWAY_TAG=${{ github.sha }}/g' ./compose/production/.env
+
+          git add ./compose/production/.env
 
           # If script has been run twice on the same commit
           git commit --allow-empty -m "Tag update: ${{ github.sha }}"
