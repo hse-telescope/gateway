@@ -40,7 +40,12 @@ func New(conf config.Config) *App {
 	clients := newClients(conf)
 	providers := newProviders(clients.auth)
 	return &App{
-		server:    server.New(conf, providers.auth),
+		server: server.New(
+			conf,
+			providers.auth,
+			clients.auth,
+			clients.core,
+		),
 		clients:   clients,
 		providers: providers,
 	}

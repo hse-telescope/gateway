@@ -55,11 +55,9 @@ func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("auth"))
-	// TODO: Proxy auth
+	s.auth.Do(r.Context(), r)
 }
 
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("core"))
-	// TODO: Proxy core
+	s.core.Do(r.Context(), r)
 }

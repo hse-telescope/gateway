@@ -12,12 +12,18 @@ type Provider interface {
 	CheckToken(ctx context.Context, token string) bool
 }
 
+type Client interface {
+	Do(ctx context.Context, req *http.Request) (*http.Response, error)
+}
+
 type Server struct {
 	server   http.Server
 	provider Provider
+	auth     Client
+	core     Client
 }
 
-func New(conf config.Config, provider Provider) *Server {
+func New(conf config.Config, provider Provider, authClient Client, coreClient Client) *Server {
 	s := new(Server)
 	s.server.Addr = fmt.Sprintf(":%d", conf.Port)
 	s.server.Handler = s.setRouter()
