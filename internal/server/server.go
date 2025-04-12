@@ -1,23 +1,23 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/hse-telescope/gateway/internal/config"
 )
 
-type provider interface {
-	ProxyRequestAuth(req *http.Request) (*http.Response, error)
-	ProxyRequestCore(req *http.Request) (*http.Response, error)
+type Provider interface {
+	CheckToken(ctx context.Context, token string) bool
 }
 
 type Server struct {
 	server   http.Server
-	provider provider
+	provider Provider
 }
 
-func New(conf config.Config, provider provider) *Server {
+func New(conf config.Config, provider Provider) *Server {
 	s := new(Server)
 	s.server.Addr = fmt.Sprintf(":%d", conf.Port)
 	s.server.Handler = s.setRouter()

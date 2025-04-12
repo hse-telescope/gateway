@@ -11,8 +11,11 @@ type Client struct {
 }
 
 type Config struct {
-	Port    uint16   `yaml:"port"`
-	Clients []Client `yaml:"clients"`
+	Port    uint16 `yaml:"port"`
+	Clients struct {
+		Auth Client `yaml:"auth"`
+		Core Client `yaml:"core"`
+	} `yaml:"clients"`
 }
 
 // Parse ...
