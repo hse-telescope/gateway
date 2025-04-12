@@ -3,13 +3,15 @@ package server
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 type middleware = func(http.Handler) http.Handler
 
 const (
-	timeout = 1 * time.Second
+	timeout    = 1 * time.Second
+	authHeader = "Authorization"
 )
 
 func wrapHandlerFunc(handlerFunc http.HandlerFunc, middlewares ...middleware) http.Handler {
@@ -50,14 +52,39 @@ func (s *Server) addAuthentification(handler http.Handler) http.Handler {
 	)
 }
 
+func writeResp(w http.ResponseWriter, resp *http.Response) {
+	w.WriteHeader(resp.StatusCode)
+	body := make([]byte, 0)
+	resp.Body.Read(body)
+	w.Write(body)
+}
+
 func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("pong"))
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
-	s.auth.Do(r.Context(), r)
+	resp, err := s.auth.Do(r.Context(), r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("internal error"))
+	}
+	writeResp(w, resp)
 }
 
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
-	s.core.Do(r.Context(), r)
+	token := r.Header.Get(authHeader)
+	info, ok := s.provider.ParseToken(token)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("no valid token provided"))
+	}
+	r.Header.Add(authHeader, strconv.Itoa(info.UserID))
+
+	resp, err := s.core.Do(r.Context(), r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("internal error"))
+	}
+	writeResp(w, resp)
 }

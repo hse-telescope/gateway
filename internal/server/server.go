@@ -6,10 +6,11 @@ import (
 	"net/http"
 
 	"github.com/hse-telescope/gateway/internal/config"
+	"github.com/hse-telescope/gateway/internal/providers/token"
 )
 
 type Provider interface {
-	CheckToken(ctx context.Context, token string) bool
+	ParseToken(token string) (token.UserInfo, bool)
 }
 
 type Client interface {

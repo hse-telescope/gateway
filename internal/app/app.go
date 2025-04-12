@@ -4,7 +4,7 @@ import (
 	auth_client "github.com/hse-telescope/gateway/internal/clients/auth"
 	core_client "github.com/hse-telescope/gateway/internal/clients/core"
 	"github.com/hse-telescope/gateway/internal/config"
-	"github.com/hse-telescope/gateway/internal/providers/auth"
+	"github.com/hse-telescope/gateway/internal/providers/token"
 	"github.com/hse-telescope/gateway/internal/server"
 )
 
@@ -14,7 +14,7 @@ type Clients struct {
 }
 
 type Providers struct {
-	auth auth.Provider
+	token token.Provider
 }
 
 type App struct {
@@ -32,7 +32,7 @@ func newClients(conf config.Config) Clients {
 
 func newProviders(authClient auth_client.Wrapper) Providers {
 	return Providers{
-		auth: auth.New(authClient),
+		token: token.New(authClient),
 	}
 }
 
@@ -42,7 +42,7 @@ func New(conf config.Config) *App {
 	return &App{
 		server: server.New(
 			conf,
-			providers.auth,
+			providers.token,
 			clients.auth,
 			clients.core,
 		),
