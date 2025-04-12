@@ -4,11 +4,9 @@ import (
 	"errors"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/hse-telescope/gateway/internal/clients/auth"
 )
 
 type Provider struct {
-	auth      auth.Wrapper
 	publicKey string
 }
 
@@ -17,9 +15,9 @@ type UserInfo struct {
 	UserID int `json:"user_id"`
 }
 
-func New(auth auth.Wrapper) Provider {
+func New(publicKey string) Provider {
 	return Provider{
-		auth: auth,
+		publicKey: publicKey,
 	}
 }
 

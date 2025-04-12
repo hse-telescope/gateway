@@ -11,8 +11,9 @@ type Client struct {
 }
 
 type Config struct {
-	Port    uint16 `yaml:"port"`
-	Clients struct {
+	Port      uint16 `yaml:"port"`
+	PublicKey string `yaml:"public_key"`
+	Clients   struct {
 		Auth Client `yaml:"auth"`
 		Core Client `yaml:"core"`
 	} `yaml:"clients"`

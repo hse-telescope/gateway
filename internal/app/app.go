@@ -30,15 +30,15 @@ func newClients(conf config.Config) Clients {
 	}
 }
 
-func newProviders(authClient auth_client.Wrapper) Providers {
+func newProviders(conf config.Config) Providers {
 	return Providers{
-		token: token.New(authClient),
+		token: token.New(conf.PublicKey),
 	}
 }
 
 func New(conf config.Config) *App {
 	clients := newClients(conf)
-	providers := newProviders(clients.auth)
+	providers := newProviders(conf)
 	return &App{
 		server: server.New(
 			conf,
