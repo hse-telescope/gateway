@@ -15,6 +15,7 @@ type Provider interface {
 
 type Client interface {
 	Do(ctx context.Context, req *http.Request) (*http.Response, error)
+	Host() string
 }
 
 type Server struct {

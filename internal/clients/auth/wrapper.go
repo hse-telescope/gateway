@@ -6,16 +6,20 @@ import (
 )
 
 type Wrapper struct {
-	url string
+	host string
 }
 
-func New(url string) Wrapper {
+func New(host string) Wrapper {
 	return Wrapper{
-		url: url,
+		host: host,
 	}
 }
 
 func (w Wrapper) Do(ctx context.Context, req *http.Request) (*http.Response, error) {
 	req = req.WithContext(ctx)
 	return http.DefaultClient.Do(req)
+}
+
+func (w Wrapper) Host() string {
+	return w.host
 }

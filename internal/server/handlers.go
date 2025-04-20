@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -69,6 +70,9 @@ func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 	r.URL.Path = strings.Replace(r.URL.Path, authPath, "/", 1)
 	r.URL.Path = strings.ReplaceAll(r.URL.Path, "//", "/")
+	r.URL.Host = s.core.Host()
+	r.Host = s.core.Host()
+
 	resp, err := s.auth.Do(r.Context(), r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -80,6 +84,8 @@ func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	r.URL.Path = strings.Replace(r.URL.Path, corePath, "/", 1)
 	r.URL.Path = strings.ReplaceAll(r.URL.Path, "//", "/")
+	r.URL.Host = s.core.Host()
+	r.Host = s.core.Host()
 
 	// token := r.Header.Get(authHeader)
 	// info, ok := s.provider.ParseToken(token)
@@ -89,6 +95,8 @@ func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 	// r.Header.Add(authHeader, strconv.Itoa(info.UserID))
+
+	fmt.Printf("url: %s", r.URL.Path)
 
 	resp, err := s.core.Do(r.Context(), r)
 	if err != nil {
