@@ -93,7 +93,7 @@ func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	r.URL.Path = newPath
 
 	targetURL := fmt.Sprintf("%s%s", s.core.Host(), r.URL.Path)
-	fmt.Fprintf(os.Stderr, "[GATEWAY] Proxying to: %s\n", targetURL)
+	fmt.Printf("[GATEWAY] Proxying to: %s\n", targetURL)
 
 	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
 	if err != nil {
@@ -102,17 +102,10 @@ func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("proxy error: %v", err)))
 		return
 	}
-	for name, values := range r.Header {
-		for _, value := range values {
-			proxyReq.Header.Add(name, value)
-		}
-	}
-	client := &http.Client{
-		Timeout: timeout,
-	}
-	resp, err := client.Do(proxyReq)
+	proxyReq.Header = r.Header
+	resp, err := s.core.Do(r.Context(), proxyReq)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[GATEWAY] Proxy DO error: %v\n", err)
+		fmt.Printf("[GATEWAY] Proxy DO error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("proxy connection error: %v", err)))
 		return
