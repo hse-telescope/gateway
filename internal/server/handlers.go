@@ -3,7 +3,9 @@ package server
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -77,31 +79,52 @@ func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("internal error"))
+		return
 	}
 	writeResp(w, resp)
 }
 
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
-	r.URL.Path = strings.Replace(r.URL.Path, corePath, "/", 1)
-	r.URL.Path = strings.ReplaceAll(r.URL.Path, "//", "/")
-	r.URL.Host = s.core.Host()
-	r.Host = s.core.Host()
-
-	// token := r.Header.Get(authHeader)
-	// info, ok := s.provider.ParseToken(token)
-	// if !ok {
-	// 	w.WriteHeader(http.StatusUnauthorized)
-	// 	w.Write([]byte("no valid token provided"))
-	// 	return
-	// }
-	// r.Header.Add(authHeader, strconv.Itoa(info.UserID))
-
-	fmt.Printf("url: %s", r.URL.Path)
-
-	resp, err := s.core.Do(r.Context(), r)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("internal error"))
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Incoming request: %s %s\n", r.Method, r.URL.Path)
+	newPath := strings.TrimPrefix(r.URL.Path, corePath)
+	if newPath == "" {
+		newPath = "/"
 	}
-	writeResp(w, resp)
+	r.URL.Path = newPath
+
+	targetURL := fmt.Sprintf("%s%s", s.core.Host(), r.URL.Path)
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Proxying to: %s\n", targetURL)
+
+	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Proxy request error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("proxy error: %v", err)))
+		return
+	}
+	for name, values := range r.Header {
+		for _, value := range values {
+			proxyReq.Header.Add(name, value)
+		}
+	}
+	client := &http.Client{
+		Timeout: timeout,
+	}
+	resp, err := client.Do(proxyReq)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Proxy DO error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("proxy connection error: %v", err)))
+		return
+	}
+	defer resp.Body.Close()
+
+	for k, v := range resp.Header {
+		w.Header()[k] = v
+	}
+	w.WriteHeader(resp.StatusCode)
+
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Response copy error: %v\n", err)
+	}
 }
