@@ -78,7 +78,7 @@ func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
-	r.URL.Path = strings.Replace(r.URL.Path, authPath, "/", 1)
+	r.URL.Path = strings.Replace(r.URL.Path, corePath, "/", 1)
 	r.URL.Path = strings.ReplaceAll(r.URL.Path, "//", "/")
 
 	// token := r.Header.Get(authHeader)
