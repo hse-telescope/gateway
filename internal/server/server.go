@@ -30,6 +30,8 @@ func New(conf config.Config, provider Provider, authClient Client, coreClient Cl
 	s.server.Addr = fmt.Sprintf(":%d", conf.Port)
 	s.server.Handler = s.setRouter()
 	s.provider = provider
+	s.auth = authClient
+	s.core = coreClient
 	return s
 }
 
