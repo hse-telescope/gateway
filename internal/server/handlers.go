@@ -97,7 +97,7 @@ func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 	req := r.Clone(r.Context())
 	req.URL = &url.URL{
 		Scheme:   "http",
-		Host:     "auth:8080",
+		Host:     s.auth.host,
 		Path:     newPath,
 		RawQuery: r.URL.RawQuery,
 	}
