@@ -78,7 +78,6 @@ func writeResp(w http.ResponseWriter, resp *http.Response) {
 	// Пишем ответ
 	w.WriteHeader(resp.StatusCode)
 	w.Write(body)
-
 }
 
 func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +96,7 @@ func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 	req := r.Clone(r.Context())
 	req.URL = &url.URL{
 		Scheme:   "http",
-		Host:     s.auth.host,
+		Host:     s.auth.Host(),
 		Path:     newPath,
 		RawQuery: r.URL.RawQuery,
 	}
