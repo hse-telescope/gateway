@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -59,10 +60,25 @@ func (s *Server) addAuthentification(handler http.Handler) http.Handler {
 }
 
 func writeResp(w http.ResponseWriter, resp *http.Response) {
+	defer resp.Body.Close()
+
+	// Читаем всё тело
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Failed to read response body: %v", err)
+		return
+	}
+
+	// Копируем заголовки
+	for key, values := range resp.Header {
+		w.Header()[key] = values
+	}
+
+	// Пишем ответ
 	w.WriteHeader(resp.StatusCode)
-	body := make([]byte, 0)
-	resp.Body.Read(body)
 	w.Write(body)
+
 }
 
 func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,13 +86,29 @@ func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
-	r.URL.Path = strings.Replace(r.URL.Path, authPath, "/", 1)
-	r.URL.Path = strings.ReplaceAll(r.URL.Path, "//", "/")
-	r.URL.Host = s.core.Host()
-	r.Host = s.core.Host()
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Incoming auth request: %s %s\n", r.Method, r.URL.Path)
 
-	resp, err := s.auth.Do(r.Context(), r)
+	// Удаляем "/auth" из пути
+	newPath := strings.TrimPrefix(r.URL.Path, authPath)
+	if !strings.HasPrefix(newPath, "/") {
+		newPath = "/" + newPath
+	}
+
+	req := r.Clone(r.Context())
+	req.URL = &url.URL{
+		Scheme:   "http",
+		Host:     s.auth.host,
+		Path:     newPath,
+		RawQuery: r.URL.RawQuery,
+	}
+	req.RequestURI = ""
+
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Forwarding to: %s %s\n", req.Method, req.URL.String())
+
+	// Делаем запрос
+	resp, err := s.auth.Do(req.Context(), req)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Auth request failed: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("internal error"))
 		return
