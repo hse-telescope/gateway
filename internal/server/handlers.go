@@ -2,8 +2,12 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
-	"strconv"
+	"net/url"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -12,6 +16,9 @@ type middleware = func(http.Handler) http.Handler
 const (
 	timeout    = 1 * time.Second
 	authHeader = "Authorization"
+
+	authPath = "/auth"
+	corePath = "/core"
 )
 
 func wrapHandlerFunc(handlerFunc http.HandlerFunc, middlewares ...middleware) http.Handler {
@@ -53,10 +60,25 @@ func (s *Server) addAuthentification(handler http.Handler) http.Handler {
 }
 
 func writeResp(w http.ResponseWriter, resp *http.Response) {
+	defer resp.Body.Close()
+
+	// Читаем всё тело
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Failed to read response body: %v", err)
+		return
+	}
+
+	// Копируем заголовки
+	for key, values := range resp.Header {
+		w.Header()[key] = values
+	}
+
+	// Пишем ответ
 	w.WriteHeader(resp.StatusCode)
-	body := make([]byte, 0)
-	resp.Body.Read(body)
 	w.Write(body)
+
 }
 
 func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,27 +86,70 @@ func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
-	resp, err := s.auth.Do(r.Context(), r)
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Incoming auth request: %s %s\n", r.Method, r.URL.Path)
+
+	// Удаляем "/auth" из пути
+	newPath := strings.TrimPrefix(r.URL.Path, authPath)
+	if !strings.HasPrefix(newPath, "/") {
+		newPath = "/" + newPath
+	}
+
+	req := r.Clone(r.Context())
+	req.URL = &url.URL{
+		Scheme:   "http",
+		Host:     "auth:8080",
+		Path:     newPath,
+		RawQuery: r.URL.RawQuery,
+	}
+	req.RequestURI = ""
+
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Forwarding to: %s %s\n", req.Method, req.URL.String())
+
+	// Делаем запрос
+	resp, err := s.auth.Do(req.Context(), req)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Auth request failed: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("internal error"))
+		return
 	}
 	writeResp(w, resp)
 }
 
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get(authHeader)
-	info, ok := s.provider.ParseToken(token)
-	if !ok {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("no valid token provided"))
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Incoming request: %s %s\n", r.Method, r.URL.Path)
+	newPath := strings.TrimPrefix(r.URL.Path, corePath)
+	if newPath == "" {
+		newPath = "/"
 	}
-	r.Header.Add(authHeader, strconv.Itoa(info.UserID))
+	r.URL.Path = newPath
 
-	resp, err := s.core.Do(r.Context(), r)
+	targetURL := fmt.Sprintf("%s%s", s.core.Host(), r.URL.Path)
+	fmt.Printf("[GATEWAY] Proxying to: %s\n", targetURL)
+
+	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Proxy request error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("internal error"))
+		w.Write([]byte(fmt.Sprintf("proxy error: %v", err)))
+		return
 	}
-	writeResp(w, resp)
+	proxyReq.Header = r.Header
+	resp, err := s.core.Do(r.Context(), proxyReq)
+	if err != nil {
+		fmt.Printf("[GATEWAY] Proxy DO error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("proxy connection error: %v", err)))
+		return
+	}
+	defer resp.Body.Close()
+
+	for k, v := range resp.Header {
+		w.Header()[k] = v
+	}
+	w.WriteHeader(resp.StatusCode)
+
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Response copy error: %v\n", err)
+	}
 }

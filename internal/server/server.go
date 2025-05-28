@@ -15,6 +15,7 @@ type Provider interface {
 
 type Client interface {
 	Do(ctx context.Context, req *http.Request) (*http.Response, error)
+	Host() string
 }
 
 type Server struct {
@@ -29,14 +30,16 @@ func New(conf config.Config, provider Provider, authClient Client, coreClient Cl
 	s.server.Addr = fmt.Sprintf(":%d", conf.Port)
 	s.server.Handler = s.setRouter()
 	s.provider = provider
+	s.auth = authClient
+	s.core = coreClient
 	return s
 }
 
 func (s *Server) setRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("GET /ping", wrapHandlerFunc(s.pingHandler, addContext, addTracing))
-	mux.Handle("/auth", wrapHandlerFunc(s.authHandler, addContext, addTracing, s.addAuthentification))
-	mux.Handle("/core", wrapHandlerFunc(s.coreHandler, addContext, addTracing, s.addAuthentification))
+	mux.Handle("/auth/", wrapHandlerFunc(s.authHandler, addContext, addTracing, s.addAuthentification))
+	mux.Handle("/core/", wrapHandlerFunc(s.coreHandler, addContext, addTracing, s.addAuthentification))
 	return mux
 }
 
