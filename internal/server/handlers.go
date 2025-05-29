@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -87,25 +86,26 @@ func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(os.Stderr, "[GATEWAY] Incoming auth request: %s %s\n", r.Method, r.URL.Path)
 
-	// Удаляем "/auth" из пути
-	newPath := strings.TrimPrefix(r.URL.Path, authPath)
-	if !strings.HasPrefix(newPath, "/") {
-		newPath = "/" + newPath
+	newPath := strings.TrimPrefix(r.URL.Path, corePath)
+	if newPath == "" {
+		newPath = "/"
+	}
+	r.URL.Path = newPath
+
+	targetURL := fmt.Sprintf("%s%s", s.auth.Host(), r.URL.Path)
+
+	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[GATEWAY] Proxy request error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("proxy error: %v", err)))
+		return
 	}
 
-	req := r.Clone(r.Context())
-	req.URL = &url.URL{
-		Scheme:   "http",
-		Host:     s.auth.Host(),
-		Path:     newPath,
-		RawQuery: r.URL.RawQuery,
-	}
-	req.RequestURI = ""
-
-	fmt.Fprintf(os.Stderr, "[GATEWAY] Forwarding to: %s %s\n", req.Method, req.URL.String())
+	fmt.Fprintf(os.Stderr, "[GATEWAY] Forwarding to: %s %s\n", proxyReq.Method, proxyReq.URL.String())
 
 	// Делаем запрос
-	resp, err := s.auth.Do(req.Context(), req)
+	resp, err := s.auth.Do(r.Context(), proxyReq)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[GATEWAY] Auth request failed: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
