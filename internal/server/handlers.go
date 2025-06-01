@@ -16,8 +16,8 @@ const (
 	timeout    = 1 * time.Second
 	authHeader = "Authorization"
 
-	authPath = "/auth"
-	corePath = "/core"
+	authPath = "/api//auth"
+	corePath = "/api/core"
 )
 
 func wrapHandlerFunc(handlerFunc http.HandlerFunc, middlewares ...middleware) http.Handler {
