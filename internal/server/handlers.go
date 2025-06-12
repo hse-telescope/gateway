@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/hse-telescope/logger"
 )
 
 type middleware = func(http.Handler) http.Handler
@@ -35,6 +37,15 @@ func addContext(handler http.Handler) http.Handler {
 			defer cancel()
 
 			r = r.WithContext(ctx)
+			handler.ServeHTTP(w, r)
+		},
+	)
+}
+
+func addLogging(handler http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			logger.Info(r.Context(), "got request", "request", r)
 			handler.ServeHTTP(w, r)
 		},
 	)
@@ -81,6 +92,18 @@ func writeResp(w http.ResponseWriter, resp *http.Response) {
 
 func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("pong"))
+}
+
+func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
+	logger.Warn(r.Context(), "started handler")
+	if strings.Contains(r.URL.Path, authPath) {
+		s.authHandler(w, r)
+	} else if strings.Contains(r.URL.Path, corePath) {
+		s.coreHandler(w, r)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("failed to locate the page"))
+	}
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {

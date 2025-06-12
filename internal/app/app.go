@@ -1,11 +1,14 @@
 package app
 
 import (
+	"context"
+
 	auth_client "github.com/hse-telescope/gateway/internal/clients/auth"
 	core_client "github.com/hse-telescope/gateway/internal/clients/core"
 	"github.com/hse-telescope/gateway/internal/config"
 	"github.com/hse-telescope/gateway/internal/providers/token"
 	"github.com/hse-telescope/gateway/internal/server"
+	"github.com/hse-telescope/logger"
 )
 
 type Clients struct {
@@ -37,6 +40,11 @@ func newProviders(conf config.Config) Providers {
 }
 
 func New(conf config.Config) *App {
+	logger.Init(conf.Logger)
+	logger.Debug(context.Background(), "debug")
+	logger.Info(context.Background(), "info")
+	logger.Warn(context.Background(), "warn")
+	logger.Error(context.Background(), "error")
 	clients := newClients(conf)
 	providers := newProviders(conf)
 	return &App{

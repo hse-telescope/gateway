@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 
+	"github.com/hse-telescope/logger"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,6 +18,7 @@ type Config struct {
 		Auth Client `yaml:"auth"`
 		Core Client `yaml:"core"`
 	} `yaml:"clients"`
+	Logger logger.Config `yaml:"logger"`
 }
 
 // Parse ...

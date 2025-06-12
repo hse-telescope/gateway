@@ -37,9 +37,8 @@ func New(conf config.Config, provider Provider, authClient Client, coreClient Cl
 
 func (s *Server) setRouter() *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.Handle("GET /ping", wrapHandlerFunc(s.pingHandler, addContext, addTracing))
-	mux.Handle(authPath, wrapHandlerFunc(s.authHandler, addContext, addTracing, s.addAuthentification))
-	mux.Handle(corePath, wrapHandlerFunc(s.coreHandler, addContext, addTracing, s.addAuthentification))
+	mux.Handle("GET /ping", wrapHandlerFunc(s.pingHandler, addContext, addTracing, addLogging))
+	mux.Handle("/", wrapHandlerFunc(s.handler, addContext, addTracing, s.addAuthentification, addLogging))
 	return mux
 }
 
