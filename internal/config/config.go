@@ -18,7 +18,8 @@ type Config struct {
 		Auth Client `yaml:"auth"`
 		Core Client `yaml:"core"`
 	} `yaml:"clients"`
-	Logger logger.Config `yaml:"logger"`
+	Logger           logger.Config `yaml:"logger"`
+	OTELCollectorURL string        `yaml:"otel_collector_url"`
 }
 
 // Parse ...

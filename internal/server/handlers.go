@@ -12,8 +12,6 @@ import (
 	"github.com/hse-telescope/logger"
 )
 
-type middleware = func(http.Handler) http.Handler
-
 const (
 	timeout    = 1 * time.Second
 	authHeader = "Authorization"
@@ -22,14 +20,6 @@ const (
 	corePath = "/api/core"
 )
 
-func wrapHandlerFunc(handlerFunc http.HandlerFunc, middlewares ...middleware) http.Handler {
-	var handler http.Handler = handlerFunc
-	for _, middleware := range middlewares {
-		handler = middleware(handler)
-	}
-	return handler
-}
-
 func addContext(handler http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
@@ -37,24 +27,6 @@ func addContext(handler http.Handler) http.Handler {
 			defer cancel()
 
 			r = r.WithContext(ctx)
-			handler.ServeHTTP(w, r)
-		},
-	)
-}
-
-func addLogging(handler http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			logger.Info(r.Context(), "got request", "request", r)
-			handler.ServeHTTP(w, r)
-		},
-	)
-}
-
-func addTracing(handler http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			// TODO: Add tracing
 			handler.ServeHTTP(w, r)
 		},
 	)

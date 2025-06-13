@@ -9,6 +9,7 @@ import (
 	"github.com/hse-telescope/gateway/internal/providers/token"
 	"github.com/hse-telescope/gateway/internal/server"
 	"github.com/hse-telescope/logger"
+	"github.com/hse-telescope/tracer"
 )
 
 type Clients struct {
@@ -40,11 +41,21 @@ func newProviders(conf config.Config) Providers {
 }
 
 func New(conf config.Config) *App {
-	logger.Init(conf.Logger)
+	err := logger.SetupLogger(context.Background(), "gateway", conf.OTELCollectorURL, conf.Logger)
+	if err != nil {
+		panic(err)
+	}
+
 	logger.Debug(context.Background(), "debug")
 	logger.Info(context.Background(), "info")
 	logger.Warn(context.Background(), "warn")
 	logger.Error(context.Background(), "error")
+
+	err = tracer.SetupTracer(context.Background(), "gateway", conf.OTELCollectorURL)
+	if err != nil {
+		panic(err)
+	}
+
 	clients := newClients(conf)
 	providers := newProviders(conf)
 	return &App{
