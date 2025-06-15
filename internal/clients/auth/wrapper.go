@@ -18,7 +18,8 @@ func New(host string) Wrapper {
 }
 
 func (w Wrapper) Do(ctx context.Context, req *http.Request) (*http.Response, error) {
-	tracer.Start(ctx, "sending auth request")
+	ctx, span := tracer.Start(ctx, "sending auth request")
+	defer span.End()
 	req = req.WithContext(ctx)
 	return http.DefaultClient.Do(req)
 }
