@@ -6,6 +6,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/hse-telescope/logger v0.0.0-20250613180714-ff5c740803ac
 	github.com/hse-telescope/tracer v0.0.0-20250613180654-2b330ed0d51f
+	github.com/hse-telescope/utils v0.0.0-20250613180912-9c6b60246719
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -15,7 +16,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
-	github.com/hse-telescope/utils v0.0.0-20250613180912-9c6b60246719 // indirect
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/samber/slog-multi v1.4.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
