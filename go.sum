@@ -23,8 +23,8 @@ github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 h1:5ZPtiqj0JL5oKWmcsq4VMaAW5uk
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3/go.mod h1:ndYquD05frm2vACXE1nsccT4oJzjhw2arTS2cpUD1PI=
 github.com/hse-telescope/logger v0.0.0-20250615163628-0408d63d601d h1:WCdj813OIxXkuTRHHVY9YFNmCfrQGH0M9v8QmaNT9y4=
 github.com/hse-telescope/logger v0.0.0-20250615163628-0408d63d601d/go.mod h1:eQJWuSlapiP1vF3AswjKn3fJyIpsQBpytQZ8vJinMxI=
-github.com/hse-telescope/tracer v0.0.0-20250615205050-2e1e3bfd1558 h1:Cff2HFi8UXS3idz99apGtFSnFOQM3AGYddoe/56+stY=
-github.com/hse-telescope/tracer v0.0.0-20250615205050-2e1e3bfd1558/go.mod h1:on9DXPoAUL4YB0FwGXaGvkAAMJNhsxvF7MPD7aNT6Dk=
+github.com/hse-telescope/tracer v0.0.0-20250615211147-74fd92033aab h1:Yr8WyB6Jvjq12W8zJi72p0oQKcO2p7Nc/IrIRncxlB8=
+github.com/hse-telescope/tracer v0.0.0-20250615211147-74fd92033aab/go.mod h1:on9DXPoAUL4YB0FwGXaGvkAAMJNhsxvF7MPD7aNT6Dk=
 github.com/hse-telescope/utils v0.0.0-20250615210250-fe0983870431 h1:Dtsb4IVKIqYvvZYdWWNppZEUcT3DeedRlt+F4evDQLE=
 github.com/hse-telescope/utils v0.0.0-20250615210250-fe0983870431/go.mod h1:Q25rIT9EH6CXwDnjP6i5sroqnG9GsdSg+ryhxu0Kjco=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
