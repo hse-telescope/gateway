@@ -6,7 +6,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/hse-telescope/logger v0.0.0-20250615163628-0408d63d601d
 	github.com/hse-telescope/tracer v0.0.0-20250615205050-2e1e3bfd1558
-	github.com/hse-telescope/utils v0.0.0-20250613180912-9c6b60246719
+	github.com/hse-telescope/utils v0.0.0-20250615210250-fe0983870431
 	github.com/prometheus/client_golang v1.22.0
 	gopkg.in/yaml.v3 v3.0.1
 )

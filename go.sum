@@ -25,8 +25,8 @@ github.com/hse-telescope/logger v0.0.0-20250615163628-0408d63d601d h1:WCdj813OIx
 github.com/hse-telescope/logger v0.0.0-20250615163628-0408d63d601d/go.mod h1:eQJWuSlapiP1vF3AswjKn3fJyIpsQBpytQZ8vJinMxI=
 github.com/hse-telescope/tracer v0.0.0-20250615205050-2e1e3bfd1558 h1:Cff2HFi8UXS3idz99apGtFSnFOQM3AGYddoe/56+stY=
 github.com/hse-telescope/tracer v0.0.0-20250615205050-2e1e3bfd1558/go.mod h1:on9DXPoAUL4YB0FwGXaGvkAAMJNhsxvF7MPD7aNT6Dk=
-github.com/hse-telescope/utils v0.0.0-20250613180912-9c6b60246719 h1:bSi7RIL69Ijq9vDF/+7CtcUGTa5SGofmU/UtqsupPN0=
-github.com/hse-telescope/utils v0.0.0-20250613180912-9c6b60246719/go.mod h1:ljzTOtseIittLTjwtRkDycmmYrxn6x3KOlaCfxrg9Eo=
+github.com/hse-telescope/utils v0.0.0-20250615210250-fe0983870431 h1:Dtsb4IVKIqYvvZYdWWNppZEUcT3DeedRlt+F4evDQLE=
+github.com/hse-telescope/utils v0.0.0-20250615210250-fe0983870431/go.mod h1:Q25rIT9EH6CXwDnjP6i5sroqnG9GsdSg+ryhxu0Kjco=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
 github.com/klauspost/compress v1.18.0/go.mod h1:2Pp+KzxcywXVXMr50+X0Q/Lsb43OQHYWRCY2AiWywWQ=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=

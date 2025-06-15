@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/hse-telescope/tracer"
-	"go.opentelemetry.io/otel/propagation"
+	"github.com/hse-telescope/utils/requests"
 )
 
 type Wrapper struct {
@@ -21,10 +21,7 @@ func New(host string) Wrapper {
 func (w Wrapper) Do(ctx context.Context, req *http.Request) (*http.Response, error) {
 	ctx, span := tracer.Start(ctx, "sending core request")
 	defer span.End()
-	propagator := propagation.TraceContext{}
-	propagator.Inject(ctx, propagation.HeaderCarrier(req.Header))
-	req = req.WithContext(ctx)
-	return http.DefaultClient.Do(req)
+	return requests.Do(ctx, req)
 }
 
 func (w Wrapper) Host() string {
