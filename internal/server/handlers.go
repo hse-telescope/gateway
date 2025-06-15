@@ -68,11 +68,12 @@ func (s *Server) pingHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 	logger.Warn(r.Context(), "started handler")
-	if strings.Contains(r.URL.Path, authPath) {
+	switch {
+	case strings.Contains(r.URL.Path, authPath):
 		s.authHandler(w, r)
-	} else if strings.Contains(r.URL.Path, corePath) {
+	case strings.Contains(r.URL.Path, corePath):
 		s.coreHandler(w, r)
-	} else {
+	default:
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("failed to locate the page"))
 	}
