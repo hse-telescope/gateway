@@ -16,7 +16,7 @@ const (
 	timeout    = 1 * time.Second
 	authHeader = "Authorization"
 
-	authPath = "/api//auth"
+	authPath = "/api/auth"
 	corePath = "/api/core"
 )
 
