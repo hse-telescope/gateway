@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"strings"
@@ -44,7 +45,6 @@ func (s *Server) addAuthentification(handler http.Handler) http.Handler {
 func writeResp(w http.ResponseWriter, resp *http.Response) {
 	defer resp.Body.Close()
 
-	// Читаем всё тело
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -52,12 +52,8 @@ func writeResp(w http.ResponseWriter, resp *http.Response) {
 		return
 	}
 
-	// Копируем заголовки
-	for key, values := range resp.Header {
-		w.Header()[key] = values
-	}
+	maps.Copy(w.Header(), resp.Header)
 
-	// Пишем ответ
 	w.WriteHeader(resp.StatusCode)
 	w.Write(body)
 }
