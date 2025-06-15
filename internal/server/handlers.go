@@ -6,7 +6,6 @@ import (
 	"io"
 	"maps"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -76,7 +75,7 @@ func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(os.Stderr, "[GATEWAY] Incoming auth request: %s %s\n", r.Method, r.URL.Path)
+	logger.Debug(r.Context(), "[GATEWAY] Incoming auth request", "method", r.Method, "path", r.URL.Path)
 
 	newPath := strings.TrimPrefix(r.URL.Path, corePath)
 	if newPath == "" {
@@ -88,18 +87,18 @@ func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 
 	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[GATEWAY] Proxy request error: %v\n", err)
+		logger.Error(r.Context(), "[GATEWAY] Proxy request error", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("proxy error: %v", err)))
 		return
 	}
 
-	fmt.Fprintf(os.Stderr, "[GATEWAY] Forwarding to: %s %s\n", proxyReq.Method, proxyReq.URL.String())
+	logger.Error(r.Context(), "[GATEWAY] Forwarding", "method", proxyReq.Method, "url", proxyReq.URL.String())
 
 	// Делаем запрос
 	resp, err := s.auth.Do(r.Context(), proxyReq)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[GATEWAY] Auth request failed: %v\n", err)
+		logger.Error(r.Context(), "[GATEWAY] auth request error", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("internal error"))
 		return
@@ -108,7 +107,7 @@ func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(os.Stderr, "[GATEWAY] Incoming request: %s %s\n", r.Method, r.URL.Path)
+	logger.Debug(r.Context(), "[GATEWAY] Incoming request", "method", r.Method, "path", r.URL.Path)
 	newPath := strings.TrimPrefix(r.URL.Path, corePath)
 	if newPath == "" {
 		newPath = "/"
@@ -116,11 +115,12 @@ func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	r.URL.Path = newPath
 
 	targetURL := fmt.Sprintf("%s%s", s.core.Host(), r.URL.Path)
-	fmt.Printf("[GATEWAY] Proxying to: %s\n", targetURL)
+	logger.Debug(r.Context(), "[GATEWAY] Incoming request", "method", r.Method, "path", r.URL.Path)
+	logger.Debug(r.Context(), "[GATEWAY] Proxying to url", "url", targetURL)
 
 	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[GATEWAY] Proxy request error: %v\n", err)
+		logger.Error(r.Context(), "[GATEWAY] Proxy request error", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("proxy error: %v", err)))
 		return
@@ -128,7 +128,7 @@ func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	proxyReq.Header = r.Header
 	resp, err := s.core.Do(r.Context(), proxyReq)
 	if err != nil {
-		fmt.Printf("[GATEWAY] Proxy DO error: %v\n", err)
+		logger.Error(r.Context(), "[GATEWAY] Proxy do error", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("proxy connection error: %v", err)))
 		return
@@ -141,6 +141,6 @@ func (s *Server) coreHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 
 	if _, err := io.Copy(w, resp.Body); err != nil {
-		fmt.Fprintf(os.Stderr, "[GATEWAY] Response copy error: %v\n", err)
+		logger.Error(r.Context(), "[GATEWAY] Proxy response copy error", "error", err)
 	}
 }
