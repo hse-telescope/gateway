@@ -8,6 +8,7 @@ import (
 	"github.com/hse-telescope/gateway/internal/config"
 	"github.com/hse-telescope/gateway/internal/providers/token"
 	"github.com/hse-telescope/logger"
+	"github.com/hse-telescope/tracer"
 	"github.com/hse-telescope/utils/handlers"
 )
 
@@ -39,8 +40,8 @@ func New(conf config.Config, provider Provider, authClient Client, coreClient Cl
 
 func (s *Server) setRouter() *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.Handle("GET /ping", handlers.WrapHandlerFunc(s.pingHandler, addContext, addTracingMiddleware, logger.AddLoggingMiddleware))
-	mux.Handle("/", handlers.WrapHandlerFunc(s.handler, addContext, addTracingMiddleware, logger.AddLoggingMiddleware, s.addAuthentification))
+	mux.Handle("GET /ping", handlers.WrapHandlerFunc(s.pingHandler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware))
+	mux.Handle("/", handlers.WrapHandlerFunc(s.handler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware, s.addAuthentification))
 	return mux
 }
 

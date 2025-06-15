@@ -10,9 +10,6 @@ import (
 	"time"
 
 	"github.com/hse-telescope/logger"
-	"github.com/hse-telescope/tracer"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -29,21 +26,6 @@ func addContext(handler http.Handler) http.Handler {
 			ctx, cancel := context.WithTimeout(r.Context(), timeout)
 			defer cancel()
 
-			r = r.WithContext(ctx)
-			handler.ServeHTTP(w, r)
-		},
-	)
-}
-
-func addTracingMiddleware(handler http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			ctx, span := tracer.Start(r.Context(), r.URL.Path)
-			span.AddEvent("got request", trace.WithAttributes(attribute.KeyValue{
-				Key:   attribute.Key("url"),
-				Value: attribute.StringValue(r.URL.Path),
-			}))
-			defer span.End()
 			r = r.WithContext(ctx)
 			handler.ServeHTTP(w, r)
 		},
