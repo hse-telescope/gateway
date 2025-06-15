@@ -43,7 +43,8 @@ func (s *Server) setRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("GET /ping", handlers.WrapHandlerFunc(s.pingHandler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware))
 	mux.Handle("/metrics", promhttp.Handler())
-	mux.Handle("/", handlers.WrapHandlerFunc(s.handler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware, s.addAuthentification))
+	mux.Handle(authPath, handlers.WrapHandlerFunc(s.authHandler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware, s.addAuthentification))
+	mux.Handle(corePath, handlers.WrapHandlerFunc(s.coreHandler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware, s.addAuthentification))
 	return mux
 }
 
