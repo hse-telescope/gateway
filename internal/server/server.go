@@ -10,6 +10,7 @@ import (
 	"github.com/hse-telescope/logger"
 	"github.com/hse-telescope/tracer"
 	"github.com/hse-telescope/utils/handlers"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Provider interface {
@@ -41,6 +42,7 @@ func New(conf config.Config, provider Provider, authClient Client, coreClient Cl
 func (s *Server) setRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("GET /ping", handlers.WrapHandlerFunc(s.pingHandler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware))
+	mux.Handle("/metrics", promhttp.Handler())
 	mux.Handle("/", handlers.WrapHandlerFunc(s.handler, addContext, tracer.AddTracingMiddleware, logger.AddLoggingMiddleware, s.addAuthentification))
 	return mux
 }
