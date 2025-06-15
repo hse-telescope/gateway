@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
-	github.com/hse-telescope/logger v0.0.0-20250613180714-ff5c740803ac
+	github.com/hse-telescope/logger v0.0.0-20250615163628-0408d63d601d
 	github.com/hse-telescope/tracer v0.0.0-20250613180654-2b330ed0d51f
 	github.com/hse-telescope/utils v0.0.0-20250613180912-9c6b60246719
 	gopkg.in/yaml.v3 v3.0.1
