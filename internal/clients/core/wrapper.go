@@ -3,6 +3,8 @@ package core
 import (
 	"context"
 	"net/http"
+
+	"github.com/hse-telescope/tracer"
 )
 
 type Wrapper struct {
@@ -16,6 +18,8 @@ func New(host string) Wrapper {
 }
 
 func (w Wrapper) Do(ctx context.Context, req *http.Request) (*http.Response, error) {
+	ctx, span := tracer.Start(ctx, "sending core request")
+	defer span.End()
 	req = req.WithContext(ctx)
 	return http.DefaultClient.Do(req)
 }
